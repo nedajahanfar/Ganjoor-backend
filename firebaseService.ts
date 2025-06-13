@@ -1,6 +1,7 @@
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
-import serviceAccount from './serviceAccountKey.json';
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -13,7 +14,7 @@ export async function shouldAllowRequest(ip: string): Promise<boolean> {
   const docRef = db.collection('requestLogs').doc(ip);
   const doc = await docRef.get();
   const now = Date.now();
-  const limit = 10 * 60 * 1000; 
+  const limit = 10 * 60 * 1000;
 
   if (!doc.exists) {
     await docRef.set({ lastRequest: now, count: 1 });
@@ -30,7 +31,6 @@ export async function shouldAllowRequest(ip: string): Promise<boolean> {
   }
 
   if (count >= 5) {
-    // Limit to 5 requests every 10 minutes
     return false;
   }
 
